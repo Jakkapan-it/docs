@@ -5,7 +5,10 @@
 <title>IT Docs</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- Font -->
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!--  Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
@@ -21,6 +24,18 @@ body{
   padding:30px 18px;
 }
 
+.home-btn{
+  position:absolute;
+  top:20px;
+  left:20px;
+  background:#fff;
+  color:#0d47a1;
+  padding:10px 16px;
+  border-radius:999px;
+  text-decoration:none;
+  box-shadow:0 6px 18px rgba(0,0,0,.15);
+}
+
 .container{
   max-width:1200px;
   margin:auto;
@@ -28,6 +43,7 @@ body{
 
 header{
   text-align:center;
+  margin-bottom:30px;
 }
 
 header h1{
@@ -42,16 +58,6 @@ header h1{
   border:1px solid #ccc;
 }
 
-/* TOP BAR */
-.topbar{
-  margin-top:20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:10px;
-}
-
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
@@ -64,6 +70,7 @@ header h1{
   border-radius:16px;
   padding:18px;
   box-shadow:0 8px 22px rgba(0,0,0,0.08);
+  transition:.3s;
 }
 
 .card:hover{
@@ -84,28 +91,14 @@ header h1{
   color:var(--accent);
 }
 
-/* PAGINATION */
-.pagination{
-  display:flex;
-  gap:6px;
+.count{
+  text-align:center;
+  margin-top:10px;
 }
-
-.pagination button{
-  padding:8px 12px;
-  border:none;
-  border-radius:8px;
-  background:#eee;
-  cursor:pointer;
-}
-
-.pagination button.active{
-  background:#5b4bff;
-  color:#fff;
-}
-
 footer{
   text-align:center;
-  margin-top:40px;
+  margin-top:50px;
+  font-size:14px;
   color:#777;
 }
 </style>
@@ -116,87 +109,52 @@ footer{
 <div class="container">
 
 <header>
-<h1>💻 IT Docs</h1>
+<h1>&#128187;</i> IT Docs</h1>
 
 <div class="search-box">
-<input type="text" id="search" placeholder="ค้นหาไฟล์...">
+<input type="text" id="search" placeholder=" ค้นหาไฟล์...">
 </div>
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <div>
-    Items per page:
-    <select id="limit">
-      <option value="10">10</option>
-      <option value="20" selected>20</option>
-      <option value="50">50</option>
-    </select>
-  </div>
-
-  <div id="fileCount">กำลังโหลด...</div>
-
-  <div id="pagination" class="pagination"></div>
-</div>
-
+<div id="fileCount" class="count"> กำลังโหลด...</div>
 </header>
 
 <div class="grid" id="qpList"></div>
+</div>
 
 <footer>VGB/I - IT</footer>
 
 </div>
 
+
 <script>
 const container = document.getElementById("qpList");
 const countBox = document.getElementById("fileCount");
-const paginationBox = document.getElementById("pagination");
 
-let allFiles = [];
-let filteredFiles = [];
-
-let currentPage = 1;
-let itemsPerPage = 20;
-
-/* ICON */
 function getIcon(name){
   name = name.toLowerCase();
+
   if(name.endsWith(".pdf")) return "fa-file-pdf";
   if(name.match(/\.(xls|xlsx)$/)) return "fa-file-excel";
   if(name.match(/\.(doc|docx)$/)) return "fa-file-word";
   if(name.match(/\.(ppt|pptx)$/)) return "fa-file-powerpoint";
   if(name.match(/\.(jpg|png|jpeg)$/)) return "fa-file-image";
+
   return "fa-file";
 }
 
-/* LOAD DATA */
 fetch("../files.json")
 .then(res => res.json())
 .then(files => {
 
-  allFiles = files
-    .map(f => f.trim())
-    .filter(f => f.toLowerCase().startsWith("it/"));
+  let count = 0;
 
-  filteredFiles = [...allFiles];
+  files.forEach(path => {
 
-  render();
-})
-.catch(err => {
-  console.error(err);
-  countBox.innerText = "โหลดข้อมูลไม่สำเร็จ";
-});
+    path = path.trim();
 
-/* RENDER */
-function render(){
+    if(!path.toLowerCase().startsWith("it/")) return;
 
-  container.innerHTML = "";
-
-  let start = (currentPage - 1) * itemsPerPage;
-  let end = start + itemsPerPage;
-
-  let pageItems = filteredFiles.slice(start, end);
-
-  pageItems.forEach(path => {
+    count++;
 
     const fileURL =
       "https://jakkapan-it.github.io/docs/" +
@@ -207,86 +165,42 @@ function render(){
     const card = document.createElement("div");
     card.className = "card";
 
+    //    Icon
     card.innerHTML = `
-      <a href="${fileURL}" targetn"></i>
-        ${name.replace(/\.[^/.]+$/, "")}
-      </a>
+  <a href="${fileURL}" target="_blank">
+    <i class="fa-solid ${getIcon(name)} icon"></i>
+    ${name.replace(/\.[^/.]+$/, "")}
+  </a>
+
     `;
 
     container.appendChild(card);
   });
 
-  updateCount();
-  renderPagination();
-}
-
-/* COUNT TEXT */
-function updateCount(){
-  let total = filteredFiles.length;
-
-  let start = total === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
-  let end = Math.min(currentPage * itemsPerPage, total);
-
-  countBox.innerText = `Showing ${start} to ${end} of ${total} entries`;
-}
-
-/* PAGINATION */
-function renderPagination(){
-
-  let totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
-  paginationBox.innerHTML = "";
-
-  if(totalPages <= 1) return;
-
-  // PREV
-  paginationBox.innerHTML += `
-    <button onclick="changePage(${currentPage-1})">«</button>
-  `;
-
-  for(let i=1;i<=totalPages;i++){
-    if(i > 5 && Math.abs(i - currentPage) > 2) continue;
-
-    paginationBox.innerHTML += `
-      <button class="${i===currentPage?'active':''}"
-        onclick="changePage(${i})">${i}</button>
-    `;
-  }
-
-  // NEXT
-  paginationBox.innerHTML += `
-    <button onclick="changePage(${currentPage+1})">»</button>
-  `;
-}
-
-/* CHANGE PAGE */
-function changePage(page){
-  let totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
-  if(page < 1 || page > totalPages) return;
-
-  currentPage = page;
-  render();
-}
-
-/* SEARCH */
-document.getElementById("search").addEventListener("keyup", function(){
-
-  const keyword = this.value.toLowerCase();
-
-  filteredFiles = allFiles.filter(file =>
-    file.toLowerCase().includes(keyword)
-  );
-
-  currentPage = 1;
-  render();
+  countBox.innerText = " จำนวนทั้งหมด: " + count + " รายการ";
+})
+.catch(err => {
+  console.error(err);
+  countBox.innerText = " โหลดข้อมูลไม่สำเร็จ";
 });
 
-/* LIMIT */
-document.getElementById("limit").addEventListener("change", function(){
-  itemsPerPage = parseInt(this.value);
-  currentPage = 1;
-  render();
+//  search
+document.getElementById("search").addEventListener("keyup", function () {
+  const keyword = this.value.toLowerCase();
+  let visible = 0;
+
+  document.querySelectorAll(".card").forEach(card => {
+    const show = card.innerText.toLowerCase().includes(keyword);
+    card.style.display = show ? "" : "none";
+    if(show) visible++;
+  });
+
+  document.getElementById("fileCount").innerText =
+    keyword ? " พบ " + visible + " รายการ"
+            : " จำนวนทั้งหมด: " + visible + " รายการ";
 });
 </script>
 
+  
 </body>
-</html>
+</html> 
